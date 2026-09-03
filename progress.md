@@ -59,6 +59,18 @@
 - 最新验证：`pytest -q` 通过 48 项；`ruff check src apps tests` 通过；`ruff format --check src apps tests` 通过；`python -m mypy src` 通过；`docker compose config` 通过。
 - 最终 Git：`main` 已成功推送到 `origin`（`https://github.com/ParkerLille/aiops-incident-agent.git`）。
 
+### 阶段 9：生产化方案设计
+- **状态：** complete
+- 执行的操作：
+  - 使用 codebase-documenter 规范，基于当前 0.1.0 实现、项目规格和架构文档编写生产化方案。
+  - 明确生产多 Agent 的职责边界：Coordinator、四类调查器、RCA、处置规划、Verifier，以及确定性 Policy/Executor。
+  - 补齐 PostgreSQL、Outbox、Durable Queue、LangGraph Checkpointer、OIDC/RBAC、Kubernetes 最小权限、SSE 断线恢复、OTel、灾备和 SLO 设计。
+  - 定义 P0-P5 版本演进、灰度策略、自动化启用条件和生产验收清单。
+- 创建/修改的文件：
+  - `docs/08-productionization-design.md`
+  - `docs/README.md`
+  - `task_plan.md`
+
 ## 最新测试结果
 | 测试 | 输入 | 预期结果 | 实际结果 | 状态 |
 |------|------|---------|---------|------|

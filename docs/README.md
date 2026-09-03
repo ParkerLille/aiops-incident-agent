@@ -9,5 +9,6 @@
 | [05-evaluation.md](05-evaluation.md) | 真值、指标、基线和发布门禁 | 每次实验后 |
 | [06-resume-material.md](06-resume-material.md) | 简历成稿与项目介绍 | 实测结果产生后 |
 | [07-interview-question-bank.md](07-interview-question-bank.md) | 面试追问与回答框架 | 模拟面试后 |
+| [08-productionization-design.md](08-productionization-design.md) | 从 0.1.0 离线 MVP 演进到生产受控多 Agent 平台的方案与验收门禁 | 架构或上线策略变化时 |
 
 简历中的性能与准确率只能来自固定故障场景的版本化报告，并明确标注为自建实验环境结果。

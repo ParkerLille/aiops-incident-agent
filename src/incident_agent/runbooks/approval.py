@@ -53,6 +53,10 @@ class ApprovalService:
     ) -> Approval:
         current = self.get(approval_id)
         if current.status != ApprovalStatus.PENDING:
+            if (approved and current.status == ApprovalStatus.APPROVED) or (
+                not approved and current.status == ApprovalStatus.REJECTED
+            ):
+                return current
             raise ValueError(f"approval cannot transition from {current.status.value}")
         updated = current.model_copy(
             update={

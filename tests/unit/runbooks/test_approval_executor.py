@@ -29,6 +29,7 @@ async def test_approval_expiry_and_decision_state_machine():
     assert approval.status.value == "pending"
     approved = service.decide(approval.id, approved=True, actor="oncall")
     assert approved.status.value == "approved"
+    assert service.decide(approval.id, approved=True, actor="oncall").id == approved.id
     with pytest.raises(ValueError, match="cannot transition"):
         service.decide(approval.id, approved=False, actor="oncall")
 

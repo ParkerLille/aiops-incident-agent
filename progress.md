@@ -20,6 +20,32 @@
   - `progress.md`
   - `docs/superpowers/specs/2026-09-04-minimal-incident-loop-design.md`
 
+### 阶段 2-3：工程基线、告警模型与 Incident API
+- **状态：** complete
+- 执行的操作：
+  - 按 TDD 实现 Settings、SQLite/PostgreSQL engine 工厂、健康探针和 Problem Details。
+  - 实现 Alertmanager Schema、稳定 SHA-256 指纹、Incident/Alert/Timeline SQLAlchemy 模型。
+  - 实现 FastAPI application factory、告警摄入、同批服务分组、重复告警幂等和 Incident 查询。
+  - 修复 SQLite 内存数据库跨连接导致的 `no such table`，使用 `StaticPool` 共享测试连接。
+  - 修复 pytest 同名模块冲突，为测试目录增加包标记。
+- 创建/修改的文件：
+  - `pyproject.toml`、`.env.example`、`.gitignore`
+  - `apps/`、`src/incident_agent/shared/`、`src/incident_agent/incidents/`
+  - `tests/unit/`、`tests/integration/`、`tests/smoke/`
+- Git 提交：
+  - `8732303 chore: 初始化 Python 工程与配置`
+  - `63b628d feat: 增加依赖探针与统一错误模型`
+  - `b1377a4 chore: 完善开发环境工程配置`
+  - `1d7cf68 feat: 建立告警模型与稳定指纹`
+
+## 最新测试结果
+| 测试 | 输入 | 预期结果 | 实际结果 | 状态 |
+|------|------|---------|---------|------|
+| 全量 pytest | `pytest -q` | 所有测试通过 | 13 passed | 通过 |
+| Ruff | `ruff check src apps tests` | 无错误 | All checks passed | 通过 |
+| Ruff 格式 | `ruff format --check src apps tests` | 无待格式化文件 | 28 files already formatted | 通过 |
+| MyPy | `python -m mypy src` | 无类型错误 | Success: no issues found in 13 source files | 通过 |
+
 ## 测试结果
 | 测试 | 输入 | 预期结果 | 实际结果 | 状态 |
 |------|------|---------|---------|------|

@@ -5,6 +5,7 @@ from collections.abc import Callable, Iterator
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from .health import ProbeResult
 
@@ -14,10 +15,15 @@ def create_engine_and_session(
 ) -> tuple[Engine, sessionmaker[Session]]:
     """Create an engine and typed session factory for the configured URL."""
 
-    connect_args = (
-        {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+    is_sqlite = database_url.startswith("sqlite")
+    connect_args = {"check_same_thread": False} if is_sqlite else {}
+    poolclass = (
+        StaticPool if database_url in {"sqlite://", "sqlite:///:memory:"} else None
     )
-    engine = create_engine(database_url, connect_args=connect_args, future=True)
+    engine_kwargs = {"connect_args": connect_args, "future": True}
+    if poolclass is not None:
+        engine_kwargs["poolclass"] = poolclass
+    engine = create_engine(database_url, **engine_kwargs)
     return engine, sessionmaker(bind=engine, class_=Session, expire_on_commit=False)
 
 

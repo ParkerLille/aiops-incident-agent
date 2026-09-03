@@ -29,6 +29,9 @@ class RunbookPolicy:
         self.allowed_namespaces = (
             frozenset(allowed_namespaces) if allowed_namespaces is not None else None
         )
+        self._reserved_namespaces = frozenset(
+            {"kube-system", "kube-public", "kube-node-lease"}
+        )
 
     def evaluate(self, command: RunbookExecutionCommand) -> PolicyResult:
         try:
@@ -48,8 +51,11 @@ class RunbookPolicy:
             )
         namespace = command.parameters.get("namespace")
         if not isinstance(namespace, str) or (
-            self.allowed_namespaces is not None
-            and namespace not in self.allowed_namespaces
+            namespace in self._reserved_namespaces
+            or (
+                self.allowed_namespaces is not None
+                and namespace not in self.allowed_namespaces
+            )
         ):
             return PolicyResult(
                 allowed=False,

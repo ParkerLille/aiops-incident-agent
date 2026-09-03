@@ -31,6 +31,11 @@ class RunbookDefinition(BaseModel):
     timeout_seconds: int = Field(ge=1, le=3600)
     verification_policy: str = Field(min_length=1, max_length=128)
 
+    @property
+    def parameter_schema(self) -> dict[str, object]:
+        """Expose the public JSON schema for UI and dry-run consumers."""
+        return self.parameter_model.model_json_schema()
+
 
 class RunbookRegistry:
     def __init__(self, definitions: Iterable[RunbookDefinition] = ()) -> None:
@@ -54,6 +59,12 @@ class RunbookRegistry:
 
     def list(self) -> list[RunbookDefinition]:
         return list(self._definitions.values())
+
+    def validate_parameters(
+        self, name: str, version: str, parameters: dict[str, str | int]
+    ) -> BaseModel:
+        definition = self.get(name, version)
+        return definition.parameter_model.model_validate(parameters)
 
 
 def default_registry() -> RunbookRegistry:

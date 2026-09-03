@@ -1,4 +1,4 @@
-"""Application configuration with safe development defaults."""
+"""Application configuration loaded from environment variables."""
 
 from functools import lru_cache
 from typing import Literal
@@ -8,32 +8,51 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Environment-backed settings for the incident agent."""
+    """Runtime settings with safe development defaults."""
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_prefix="AIOPS_", extra="ignore", case_sensitive=False
+        env_file=".env",
+        env_prefix="AIOPS_",
+        extra="ignore",
     )
 
     environment: Literal["test", "development", "production"] = "development"
-    database_url: str = "sqlite:///./incident-agent.db"
+    database_url: str | None = None
     redis_url: str | None = None
     alertmanager_webhook_secret: str | None = None
     require_webhook_signature: bool = False
-    max_alert_payload_bytes: int = Field(default=1_048_576, gt=0, le=10_485_760)
+    max_alert_payload_bytes: int = Field(
+        default=1_048_576,
+        gt=0,
+        le=10_485_760,
+    )
 
     @model_validator(mode="after")
-    def validate_production(self) -> "Settings":
+    def validate_environment(self) -> "Settings":
+        if self.environment == "test" and self.database_url is None:
+            self.database_url = "sqlite:///:memory:"
+        elif self.environment == "development" and self.database_url is None:
+            self.database_url = "sqlite:///./incident-agent.db"
+
         if self.environment == "production":
-            if not self.database_url or self.database_url.startswith("sqlite"):
-                raise ValueError("production requires a non-sqlite database_url")
-            if not self.redis_url or not self.alertmanager_webhook_secret:
-                raise ValueError("production requires redis_url and alertmanager_webhook_secret")
+            missing = [
+                name
+                for name, value in (
+                    ("database_url", self.database_url),
+                    ("redis_url", self.redis_url),
+                    ("alertmanager_webhook_secret", self.alertmanager_webhook_secret),
+                )
+                if not value
+            ]
+            if missing:
+                raise ValueError("production requires " + ", ".join(missing))
             self.require_webhook_signature = True
+
         return self
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Return process-wide settings loaded from the environment."""
+    """Return the process-wide cached settings instance."""
 
     return Settings()

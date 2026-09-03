@@ -38,6 +38,26 @@
   - `b1377a4 chore: 完善开发环境工程配置`
   - `1d7cf68 feat: 建立告警模型与稳定指纹`
 
+### 阶段 4-8：证据、推理、Runbook、验证与离线演示
+- **状态：** complete
+- 执行的操作：
+  - 并行实现并提交四类 Fake Investigator 与统一 Evidence 契约（`6b685bf`）。
+  - 实现类型化 Runbook、策略、审批、幂等 Fake Executor，并补充集成校验（`4194452`、`08c3648`、`1c43654`）。
+  - 实现并行调查协调、确定性 Hypothesis 排序、恢复验证、事实型复盘、三类故障场景和 RCA 评测器（`91e28b5`）。
+  - 串联离线调查→Runbook→恢复验证测试；开发环境注册 lab 场景路由，生产环境显式禁用。
+  - 修复生产路由测试不应强制加载 PostgreSQL 驱动的问题，应用工厂支持注入仓储和探针。
+- 创建/修改的文件：
+  - `src/incident_agent/investigators/`
+  - `src/incident_agent/reasoning/`
+  - `src/incident_agent/runbooks/`
+  - `src/incident_agent/verification/`
+  - `src/incident_agent/reports/`
+  - `src/incident_agent/lab/`
+  - `src/incident_agent/evals/`
+  - `tests/unit/{investigators,reasoning,runbooks,verification,reports,lab,evals}/`
+  - `tests/integration/{runbooks,test_offline_workflow,test_lab_routes}.py`
+- 最新验证：`pytest -q` 通过 48 项；`ruff check src apps tests` 通过；`ruff format --check src apps tests` 通过；`python -m mypy src` 通过；`docker compose config` 通过。
+
 ## 最新测试结果
 | 测试 | 输入 | 预期结果 | 实际结果 | 状态 |
 |------|------|---------|---------|------|

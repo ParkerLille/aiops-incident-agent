@@ -2,7 +2,36 @@
 
 面向微服务系统的故障诊断与受控处置平台。系统接收告警，聚合指标、日志、调用链和发布变更，由多个受限调查 Agent 并行收集证据、形成根因排序，并通过预定义 Runbook 与人工审批执行恢复动作。
 
-> 当前状态：设计与开发计划已完成，业务代码尚未实现。本项目运行在自建故障实验环境，不代表真实生产事故数据。
+> 当前状态：离线最小闭环已实现并通过 48 项自动化测试；真实 Prometheus/Loki/Tempo/Kubernetes 适配仍保留为后续实验环境扩展。本项目运行在自建故障实验环境，不代表真实生产事故数据。
+
+## 快速开始
+
+Python 3.12 环境下直接安装并启动：
+
+```powershell
+python -m pip install -e ".[dev]"
+python -m apps.api
+```
+
+默认开发模式使用 SQLite 和 Fake Redis 探针，不需要外部密钥。启动后可访问：
+
+- `GET http://127.0.0.1:8000/live`
+- `GET http://127.0.0.1:8000/ready`
+- `GET http://127.0.0.1:8000/v1/lab/scenarios`
+- `POST http://127.0.0.1:8000/v1/alerts/alertmanager`
+- `GET http://127.0.0.1:8000/v1/incidents/{incident_id}`
+
+运行验证：
+
+```powershell
+pytest -q
+ruff check src apps tests
+ruff format --check src apps tests
+python -m mypy src
+docker compose config
+```
+
+生产模式要求 PostgreSQL、Redis 和 webhook secret；`/v1/lab` 路由不会注册。未配置 LLM、遥测或 Kubernetes 时，调查器使用确定性 Fake 或明确返回 missing-source，不会伪造事实。
 
 ## 首版故障范围
 

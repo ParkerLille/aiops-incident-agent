@@ -20,9 +20,11 @@ def create_app(
     probes: dict[str, Callable] | None = None,
 ) -> FastAPI:
     app_settings = settings or get_settings()
-    engine, session_factory = create_engine_and_session(app_settings.database_url)
     if repository is None:
+        engine, session_factory = create_engine_and_session(app_settings.database_url)
         repository = IncidentRepository(session_factory)
+    else:
+        engine = None
     repository.create_tables()
     app = FastAPI(title="AIOps Incident Agent", version="0.1.0")
     app.state.settings = app_settings
@@ -77,4 +79,28 @@ def create_app(
         )
 
     app.include_router(incidents_router)
+    if app_settings.environment != "production":
+        from incident_agent.lab.scenarios import get_scenario, list_scenarios
+
+        @app.get("/v1/lab/scenarios")
+        async def lab_scenarios() -> list[dict[str, str]]:
+            return [
+                {
+                    "name": scenario.name,
+                    "service": scenario.service,
+                    "ground_truth": scenario.ground_truth,
+                    "legal_runbook": scenario.legal_runbook,
+                }
+                for scenario in list_scenarios()
+            ]
+
+        @app.post("/v1/lab/scenarios/{name}/inject")
+        async def inject_scenario(name: str) -> dict[str, str]:
+            scenario = get_scenario(name)
+            return {
+                "scenario": scenario.name,
+                "status": "injected",
+                "service": scenario.service,
+            }
+
     return app
